@@ -1,0 +1,330 @@
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=String.prototype.replaceAll"></script>
+
+<style>
+:root {
+  --ol-rand-bg: none;
+}
+
+.notify-render .hope-close-button {
+  display: none;
+}
+
+/* 同一张随机背景：light/dark 共用 */
+.hope-ui-light,
+.hope-ui-dark {
+  background-image: var(--ol-rand-bg) !important;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-color: #0b0b0b; /* 网络慢时仅纯色，不用静态图 */
+}
+
+/* 手机端 fixed 背景兼容性较差，降级为 scroll */
+@media (max-aspect-ratio: 1/1) {
+  .hope-ui-light,
+  .hope-ui-dark {
+    background-attachment: scroll;
+  }
+}
+
+#root > .header {
+  background: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+}
+
+.footerd {
+  width: 100vw;
+  height: 5vh;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+}
+
+.hope-ui-light .body > .nav {
+  background-color: rgba(255,255,255,0.7);
+  border-radius: var(--hope-radii-xl);
+}
+.hope-ui-dark .body > .nav {
+  background-color: rgb(0 0 0 / 50%);
+  border-radius: var(--hope-radii-xl);
+}
+.body > .nav::after {
+  display: none;
+}
+
+dibu {
+  border-top: 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  min-height: 85vh;
+}
+
+.table {
+  margin: auto;
+}
+
+#canvas-basic {
+  position: fixed;
+  display: block;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  z-index: -999;
+}
+
+.hope-image {
+  filter: drop-shadow(2px 4px 8px rgb(255,255,255));
+}
+
+/* 日夜切换按钮 */
+button#hope-menu-daynight-switch-trigger {
+  position: fixed;
+  bottom: 7.5vh;
+  left: 2.5vw;
+  z-index: 114;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* fallback panel colors when OpenList hash classes change */
+.hope-ui-light .obj-box {
+  background-color: rgba(255,255,255,0.65) !important;
+}
+.hope-ui-dark .obj-box {
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+
+/* 你原来的 hash 规则保留（可选） */
+.hope-ui-light .obj-box.hope-stack.hope-c-dhzjXW.hope-c-PJLV.hope-c-PJLV-igScBhH-css {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.7) !important;
+}
+.hope-ui-dark .obj-box.hope-stack.hope-c-dhzjXW.hope-c-PJLV.hope-c-PJLV-iigjoxS-css {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+.hope-ui-light .hope-c-PJLV.hope-c-PJLV-ikSuVsl-css {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.5) !important;
+}
+.hope-ui-dark .hope-c-PJLV.hope-c-PJLV-iiuDLME-css {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+.hope-ui-light .hope-c-ivMHWx-hZistB-cv.hope-icon-button {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.5) !important;
+}
+.hope-ui-dark .hope-c-ivMHWx-hZistB-cv.hope-icon-button {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+.hope-ui-light .hope-c-PJLV-ijgzmFG-css {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.5) !important;
+}
+.hope-ui-dark .hope-c-PJLV-ijgzmFG-css {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+.hope-ui-light pre {
+  background-color: rgba(255,255,255,0.1) !important;
+}
+.hope-ui-dark pre {
+  background-color: rgba(255,255,255,0) !important;
+}
+.hope-ui-light .hope-c-PJLV-ieGWMbI-css {
+  backdrop-filter: blur(1px);
+  background: rgba(255,255,255,0.5) !important;
+}
+.hope-ui-dark .hope-c-PJLV-ieGWMbI-css {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+.hope-ui-light .hope-c-PJLV-ihVEsOa-css {
+  backdrop-filter: blur(1px);
+  background: rgba(255,255,255,0.5) !important;
+}
+.hope-ui-dark .hope-c-PJLV-ihVEsOa-css {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+</style>
+
+<!-- 随机背景（仅加载成功后才应用，不会先静态后跳图） -->
+<script>
+(function () {
+  var API_H = "https://rapi.kyr.us.ci/random/h";
+  var API_V = "https://rapi.kyr.us.ci/random/v";
+
+  function pickApi() {
+    return window.matchMedia("(max-aspect-ratio: 1/1)").matches ? API_V : API_H;
+  }
+
+  function withTs(url) {
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now();
+  }
+
+  function applyRandomBg() {
+    var url = withTs(pickApi());
+    var img = new Image();
+
+    img.onload = function () {
+      document.documentElement.style.setProperty("--ol-rand-bg", 'url("' + url + '")');
+    };
+
+    img.onerror = function () {
+      console.warn("[openlist-header] random bg load failed:", url);
+    };
+
+    img.src = url;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyRandomBg, { once: true });
+  } else {
+    applyRandomBg();
+  }
+})();
+</script>
+
+<!-- 底部渐变条 -->
+<script>
+(function () {
+  function ensureFooter() {
+    if (!document.querySelector(".footerd")) {
+      var el = document.createElement("div");
+      el.className = "footerd";
+      document.body.appendChild(el);
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureFooter, { once: true });
+  } else {
+    ensureFooter();
+  }
+})();
+</script>
+
+<!-- 日夜主题切换按钮 -->
+<script>
+(function () {
+  var STORAGE_KEY = "openlist-theme";
+
+  function unlockScroll() {
+    var docEl = document.documentElement;
+    var body = document.body;
+    if (docEl) {
+      docEl.style.overflow = "";
+      docEl.style.overflowY = "";
+      docEl.style.position = "";
+      docEl.style.width = "";
+    }
+    if (body) {
+      body.style.overflow = "";
+      body.style.overflowY = "";
+      body.style.position = "";
+      body.style.width = "";
+      body.style.paddingRight = "";
+      body.style.touchAction = "";
+    }
+  }
+
+  function cleanupThemeSwitchUi() {
+    var leftovers = document.querySelectorAll(".hope-drawer__overlay, .hope-drawer__content-container, .hope-modal__overlay");
+    for (var i = 0; i < leftovers.length; i++) {
+      leftovers[i].style.display = "none";
+      leftovers[i].style.pointerEvents = "none";
+    }
+    unlockScroll();
+    setTimeout(unlockScroll, 120);
+    setTimeout(unlockScroll, 320);
+  }
+
+  function getThemeTargets() {
+    return document.querySelectorAll(".hope-ui-light, .hope-ui-dark");
+  }
+
+  function detectTheme() {
+    var targets = getThemeTargets();
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].classList.contains("hope-ui-dark")) return "dark";
+    }
+    return "light";
+  }
+
+  function applyTheme(theme) {
+    var toDark = theme === "dark";
+    var targets = getThemeTargets();
+    for (var i = 0; i < targets.length; i++) {
+      targets[i].classList.remove("hope-ui-light", "hope-ui-dark");
+      targets[i].classList.add(toDark ? "hope-ui-dark" : "hope-ui-light");
+    }
+    try { localStorage.setItem(STORAGE_KEY, toDark ? "dark" : "light"); } catch (e) {}
+    cleanupThemeSwitchUi();
+  }
+
+  function daynightswitch(e) {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    var next = detectTheme() === "light" ? "dark" : "light";
+    applyTheme(next);
+  }
+
+  function ensureSwitchButton() {
+    var btn = document.getElementById("hope-menu-daynight-switch-trigger");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "hope-menu-daynight-switch-trigger";
+      btn.type = "button";
+      btn.setAttribute("role", "button");
+      btn.setAttribute("aria-label", "switch layout");
+      btn.className = "hope-icon-button";
+      btn.innerHTML = '<svg viewBox="0 0 1024 1024" width="1em" height="1em" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M512 0c282.7776 0 512 229.2224 512 512s-229.2224 512-512 512S0 794.7776 0 512 229.2224 0 512 0z m0 51.2a460.8 460.8 0 0 0-13.568 921.3952L512 972.8v-256a204.8 204.8 0 1 0 0-409.6V51.2z m0 256v409.6a204.8 204.8 0 1 1 0-409.6z" fill="currentColor"></path></svg>';
+      document.body.appendChild(btn);
+    }
+
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", daynightswitch, true);
+    }
+  }
+
+  function restoreTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (saved === "light" || saved === "dark") {
+      applyTheme(saved);
+    }
+  }
+
+  function boot() {
+    restoreTheme();
+    ensureSwitchButton();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
