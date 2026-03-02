@@ -5,80 +5,59 @@
   --ol-rand-bg: none;
 }
 
+/* 关闭默认通知 X */
 .notify-render .hope-close-button {
   display: none;
 }
 
-/* 背景：light/dark 共用同一张随机图 */
-.hope-ui-light,
-.hope-ui-dark {
-  background-image: var(--ol-rand-bg) !important;
+/* 背景层：独立 fixed，不跟内容层滚动 */
+#ol-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--ol-rand-bg);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
-  background-color: #0b0b0b; /* 网络慢时纯色，不用静态图 */
+  background-color: #0b0b0b; /* 随机图没加载时纯色兜底 */
 }
 
-@media (max-aspect-ratio: 1/1) {
-  .hope-ui-light,
-  .hope-ui-dark {
-    background-attachment: scroll;
-  }
+/* 内容层抬到背景之上 */
+#root,
+.App {
+  position: relative;
+  z-index: 1;
 }
 
+/* 清掉大容器背景，避免底部黑块 */
+html,
+body,
+#root,
+.App,
+.hope-ui-light,
+.hope-ui-dark {
+  background: transparent !important;
+}
+
+/* 头部渐变 */
 #root > .header {
-  background: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
 }
 
+/* 底部渐变条 */
 .footerd {
   width: 100vw;
   height: 5vh;
   position: fixed;
   bottom: 0;
   left: 0;
+  z-index: 2;
   pointer-events: none;
-  background: linear-gradient(0deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  background: linear-gradient(0deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
 }
 
-.App {
-  min-height: 85vh;
-}
-
-.table {
-  margin: auto;
-}
-
-#canvas-basic {
-  position: fixed;
-  display: block;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  z-index: -999;
-}
-
-.hope-image {
-  filter: drop-shadow(2px 4px 8px rgb(255,255,255));
-}
-
-button#hope-menu-daynight-switch-trigger {
-  position: fixed;
-  bottom: 7.5vh;
-  left: 2.5vw;
-  z-index: 114;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 9999px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
-
-/* 更稳的兜底面板色（避免 hash 类名变化） */
+/* 面板玻璃化（稳定选择器） */
 .hope-ui-light .obj-box,
 .hope-ui-light .body > .nav,
 .hope-ui-light .hope-icon-button,
@@ -98,15 +77,47 @@ button#hope-menu-daynight-switch-trigger {
 .body > .nav {
   border-radius: var(--hope-radii-xl);
 }
-
 .body > .nav::after {
   display: none;
 }
+
+.table {
+  margin: auto;
+}
+
+.hope-image {
+  filter: drop-shadow(2px 4px 8px rgb(255,255,255));
+}
+
+/* 日夜按钮 */
+button#hope-menu-daynight-switch-trigger {
+  position: fixed;
+  bottom: 7.5vh;
+  left: 2.5vw;
+  z-index: 114;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
 </style>
 
-<!-- 底部渐变条 -->
+<!-- 创建固定背景层 + 底部渐变 -->
 <script>
 (function () {
+  function ensureBgLayer() {
+    if (!document.getElementById("ol-bg-layer")) {
+      var bg = document.createElement("div");
+      bg.id = "ol-bg-layer";
+      document.body.insertBefore(bg, document.body.firstChild);
+    }
+  }
+
   function ensureFooter() {
     if (!document.querySelector(".footerd")) {
       var el = document.createElement("div");
@@ -115,21 +126,26 @@ button#hope-menu-daynight-switch-trigger {
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureFooter, { once: true });
-  } else {
+  function boot() {
+    ensureBgLayer();
     ensureFooter();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
   }
 })();
 </script>
 
-<!-- 随机背景：使用 random-img-only.js 提供的 getRandomPicH/V -->
+<!-- 随机背景（用 rapi random-img-only.js，不用 /random/h 路由） -->
 <script>
 (function () {
   var RANDOM_SCRIPT = "https://rapi.kyr.us.ci/random-img-only.js";
-  var SCRIPT_ID = "ol-random-img-only-script";
+  var RANDOM_SCRIPT_ID = "ol-random-img-only-script";
 
-  function pickUrl() {
+  function pickRandomUrl() {
     var portrait = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
     if (portrait && typeof window.getRandomPicV === "function") return window.getRandomPicV();
     if (!portrait && typeof window.getRandomPicH === "function") return window.getRandomPicH();
@@ -138,8 +154,8 @@ button#hope-menu-daynight-switch-trigger {
     return "";
   }
 
-  function applyRandomBgOnce() {
-    var url = pickUrl();
+  function applyRandomBg() {
+    var url = pickRandomUrl();
     if (!url) return;
 
     var img = new Image();
@@ -152,47 +168,60 @@ button#hope-menu-daynight-switch-trigger {
     img.src = url;
   }
 
-  function waitAndApply() {
+  function waitReadyThenApply() {
     if (window.__randomPicApiReady || typeof window.getRandomPicH === "function" || typeof window.getRandomPicV === "function") {
-      applyRandomBgOnce();
+      applyRandomBg();
       return;
     }
 
-    window.addEventListener("random-pic-api:ready", function onReady() {
-      applyRandomBgOnce();
+    window.addEventListener("random-pic-api:ready", function () {
+      applyRandomBg();
     }, { once: true });
 
-    setTimeout(function () {
-      applyRandomBgOnce();
-    }, 1200);
+    setTimeout(applyRandomBg, 1200);
   }
 
-  function loadRandomScript() {
-    if (document.getElementById(SCRIPT_ID)) {
-      waitAndApply();
+  function loadRandomRuntime() {
+    if (document.getElementById(RANDOM_SCRIPT_ID)) {
+      waitReadyThenApply();
       return;
     }
 
     var s = document.createElement("script");
-    s.id = SCRIPT_ID;
+    s.id = RANDOM_SCRIPT_ID;
     s.src = RANDOM_SCRIPT;
     s.async = true;
-    s.onload = waitAndApply;
+    s.onload = waitReadyThenApply;
     s.onerror = function () {
       console.warn("[openlist-header] failed to load random-img-only.js");
     };
     document.head.appendChild(s);
   }
 
+  function boot() {
+    loadRandomRuntime();
+
+    var mql = window.matchMedia("(max-aspect-ratio: 1/1)");
+    if (mql && mql.addEventListener) {
+      mql.addEventListener("change", function () {
+        applyRandomBg();
+      });
+    } else if (mql && mql.addListener) {
+      mql.addListener(function () {
+        applyRandomBg();
+      });
+    }
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadRandomScript, { once: true });
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
   } else {
-    loadRandomScript();
+    boot();
   }
 })();
 </script>
 
-<!-- 日夜主题切换按钮 -->
+<!-- 日夜主题切换 -->
 <script>
 (function () {
   var STORAGE_KEY = "openlist-theme";
@@ -240,33 +269,39 @@ button#hope-menu-daynight-switch-trigger {
   }
 
   function applyTheme(theme) {
-    var toDark = theme === "dark";
+    var dark = theme === "dark";
     var targets = getThemeTargets();
+
     for (var i = 0; i < targets.length; i++) {
       targets[i].classList.remove("hope-ui-light", "hope-ui-dark");
-      targets[i].classList.add(toDark ? "hope-ui-dark" : "hope-ui-light");
+      targets[i].classList.add(dark ? "hope-ui-dark" : "hope-ui-light");
     }
-    try { localStorage.setItem(STORAGE_KEY, toDark ? "dark" : "light"); } catch (_e) {}
+
+    try {
+      localStorage.setItem(STORAGE_KEY, dark ? "dark" : "light");
+    } catch (_e) {}
+
     cleanupThemeSwitchUi();
   }
 
-  function daynightswitch(e) {
+  function toggleTheme(e) {
     if (e) {
       if (e.preventDefault) e.preventDefault();
       if (e.stopPropagation) e.stopPropagation();
       if (e.stopImmediatePropagation) e.stopImmediatePropagation();
     }
+
     var next = detectTheme() === "light" ? "dark" : "light";
     applyTheme(next);
   }
 
   function ensureSwitchButton() {
     var btn = document.getElementById("hope-menu-daynight-switch-trigger");
+
     if (!btn) {
       btn = document.createElement("button");
       btn.id = "hope-menu-daynight-switch-trigger";
       btn.type = "button";
-      btn.setAttribute("role", "button");
       btn.setAttribute("aria-label", "switch layout");
       btn.className = "hope-icon-button";
       btn.innerHTML =
@@ -278,7 +313,7 @@ button#hope-menu-daynight-switch-trigger {
 
     if (!btn.dataset.bound) {
       btn.dataset.bound = "1";
-      btn.addEventListener("click", daynightswitch, true);
+      btn.addEventListener("click", toggleTheme, true);
     }
   }
 
