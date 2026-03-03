@@ -14,7 +14,7 @@
 #ol-bg-layer {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background-image: var(--ol-rand-bg);
   background-repeat: no-repeat;
@@ -27,7 +27,6 @@
 #root,
 .App {
   position: relative;
-  z-index: 1;
 }
 
 /* 清掉大容器背景，避免底部黑块 */
@@ -139,7 +138,7 @@ button#hope-menu-daynight-switch-trigger {
 })();
 </script>
 
-<!-- 随机背景（用 rapi random-img-only.js，不用 /random/h 路由） -->
+<!-- 随机背景（用 rapi random-img-only.js，不走 /random/h 路由）-->
 <script>
 (function () {
   var RANDOM_SCRIPT = "https://rapi.kyr.us.ci/random-img-only.js";
@@ -245,15 +244,37 @@ button#hope-menu-daynight-switch-trigger {
     }
   }
 
-  function cleanupThemeSwitchUi() {
-    var leftovers = document.querySelectorAll(".hope-drawer__overlay, .hope-drawer__content-container, .hope-modal__overlay");
-    for (var i = 0; i < leftovers.length; i++) {
-      leftovers[i].style.display = "none";
-      leftovers[i].style.pointerEvents = "none";
+  function hasVisibleLayer(selector) {
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; i++) {
+      var s = window.getComputedStyle(nodes[i]);
+      var rect = nodes[i].getBoundingClientRect();
+      var visible = s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0" && rect.width > 0 && rect.height > 0;
+      if (visible) return true;
     }
+    return false;
+  }
+
+  function clearStuckOverlays() {
+    var hasVisibleDrawer = hasVisibleLayer(".hope-drawer__content-container");
+    var hasVisibleModal = hasVisibleLayer(".hope-modal__content, .hope-modal__content-container");
+    if (hasVisibleDrawer || hasVisibleModal) return;
+
+    var overlays = document.querySelectorAll(".hope-drawer__overlay, .hope-modal__overlay");
+    for (var i = 0; i < overlays.length; i++) {
+      overlays[i].style.pointerEvents = "none";
+    }
+  }
+
+  function cleanupThemeSwitchUi() {
+    // Only reset scroll lock; do not hide Drawer/Modal nodes globally.
+    // Hiding these nodes can break OpenList side panel interactions.
     unlockScroll();
+    clearStuckOverlays();
     setTimeout(unlockScroll, 120);
+    setTimeout(clearStuckOverlays, 120);
     setTimeout(unlockScroll, 320);
+    setTimeout(clearStuckOverlays, 320);
   }
 
   function getThemeTargets() {
@@ -337,3 +358,4 @@ button#hope-menu-daynight-switch-trigger {
   }
 })();
 </script>
+
