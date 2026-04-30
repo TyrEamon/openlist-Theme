@@ -1,0 +1,796 @@
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=String.prototype.replaceAll"></script>
+
+<style>
+:root {
+  --ol-rand-bg: none;
+}
+
+/* 关闭默认通知 X */
+.notify-render .hope-close-button {
+  display: none;
+}
+
+/* 背景层：独立 fixed，不跟内容层滚动 */
+#ol-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--ol-rand-bg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-color: #0b0b0b; /* 随机图没加载时纯色兜底 */
+}
+
+/* 内容层抬到背景之上 */
+#root,
+.App {
+  position: relative;
+}
+
+/* 清掉大容器背景，避免底部黑块 */
+html,
+body,
+#root,
+.App,
+.hope-ui-light,
+.hope-ui-dark {
+  background: transparent !important;
+}
+
+/* 头部渐变 */
+#root > .header {
+  background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
+}
+
+/* 底部渐变条 */
+.footerd {
+  width: 100vw;
+  height: 5vh;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
+}
+
+/* 面板玻璃化（稳定选择器） */
+.hope-ui-light .obj-box,
+.hope-ui-light .body > .nav,
+.hope-ui-light .hope-icon-button,
+.hope-ui-light pre {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.65) !important;
+}
+
+.hope-ui-dark .obj-box,
+.hope-ui-dark .body > .nav,
+.hope-ui-dark .hope-icon-button,
+.hope-ui-dark pre {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+
+.body > .nav {
+  border-radius: var(--hope-radii-xl);
+}
+.body > .nav::after {
+  display: none;
+}
+
+.table {
+  margin: auto;
+}
+
+.hope-image {
+  filter: drop-shadow(2px 4px 8px rgb(255,255,255));
+}
+
+/* 日夜按钮 */
+button#hope-menu-daynight-switch-trigger {
+  position: fixed;
+  bottom: 7.5vh;
+  left: 2.5vw;
+  z-index: 114;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+</style>
+
+<!-- 创建固定背景层 + 底部渐变 -->
+<script>
+(function () {
+  function ensureBgLayer() {
+    if (!document.getElementById("ol-bg-layer")) {
+      var bg = document.createElement("div");
+      bg.id = "ol-bg-layer";
+      document.body.insertBefore(bg, document.body.firstChild);
+    }
+  }
+
+  function ensureFooter() {
+    if (!document.querySelector(".footerd")) {
+      var el = document.createElement("div");
+      el.className = "footerd";
+      document.body.appendChild(el);
+    }
+  }
+
+  function boot() {
+    ensureBgLayer();
+    ensureFooter();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- 随机背景（用 rapi random-img-only.js，不走 /random/h 路由）-->
+<script>
+(function () {
+  var RANDOM_SCRIPT = "https://rapi.kyr.us.ci/random-img-only.js";
+  var RANDOM_SCRIPT_ID = "ol-random-img-only-script";
+
+  function pickRandomUrl() {
+    var portrait = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    if (portrait && typeof window.getRandomPicV === "function") return window.getRandomPicV();
+    if (!portrait && typeof window.getRandomPicH === "function") return window.getRandomPicH();
+    if (typeof window.getRandomPicH === "function") return window.getRandomPicH();
+    if (typeof window.getRandomPicV === "function") return window.getRandomPicV();
+    return "";
+  }
+
+  function applyRandomBg() {
+    var url = pickRandomUrl();
+    if (!url) return;
+
+    var img = new Image();
+    img.onload = function () {
+      document.documentElement.style.setProperty("--ol-rand-bg", 'url("' + url + '")');
+    };
+    img.onerror = function () {
+      console.warn("[openlist-header] random bg load failed:", url);
+    };
+    img.src = url;
+  }
+
+  function waitReadyThenApply() {
+    if (window.__randomPicApiReady || typeof window.getRandomPicH === "function" || typeof window.getRandomPicV === "function") {
+      applyRandomBg();
+      return;
+    }
+
+    window.addEventListener("random-pic-api:ready", function () {
+      applyRandomBg();
+    }, { once: true });
+
+    setTimeout(applyRandomBg, 1200);
+  }
+
+  function loadRandomRuntime() {
+    if (document.getElementById(RANDOM_SCRIPT_ID)) {
+      waitReadyThenApply();
+      return;
+    }
+
+    var s = document.createElement("script");
+    s.id = RANDOM_SCRIPT_ID;
+    s.src = RANDOM_SCRIPT;
+    s.async = true;
+    s.onload = waitReadyThenApply;
+    s.onerror = function () {
+      console.warn("[openlist-header] failed to load random-img-only.js");
+    };
+    document.head.appendChild(s);
+  }
+
+  function boot() {
+    loadRandomRuntime();
+
+    var mql = window.matchMedia("(max-aspect-ratio: 1/1)");
+    if (mql && mql.addEventListener) {
+      mql.addEventListener("change", function () {
+        applyRandomBg();
+      });
+    } else if (mql && mql.addListener) {
+      mql.addListener(function () {
+        applyRandomBg();
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- 日夜主题切换 -->
+<script>
+(function () {
+  var STORAGE_KEY = "openlist-theme";
+
+  function unlockScroll() {
+    var docEl = document.documentElement;
+    var body = document.body;
+    if (docEl) {
+      docEl.style.overflow = "";
+      docEl.style.overflowY = "";
+      docEl.style.position = "";
+      docEl.style.width = "";
+    }
+    if (body) {
+      body.style.overflow = "";
+      body.style.overflowY = "";
+      body.style.position = "";
+      body.style.width = "";
+      body.style.paddingRight = "";
+      body.style.touchAction = "";
+    }
+  }
+
+  function hasVisibleLayer(selector) {
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; i++) {
+      var s = window.getComputedStyle(nodes[i]);
+      var rect = nodes[i].getBoundingClientRect();
+      var visible = s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0" && rect.width > 0 && rect.height > 0;
+      if (visible) return true;
+    }
+    return false;
+  }
+
+  function clearStuckOverlays() {
+    var hasVisibleDrawer = hasVisibleLayer(".hope-drawer__content-container");
+    var hasVisibleModal = hasVisibleLayer(".hope-modal__content, .hope-modal__content-container");
+    if (hasVisibleDrawer || hasVisibleModal) return;
+
+    var overlays = document.querySelectorAll(".hope-drawer__overlay, .hope-modal__overlay");
+    for (var i = 0; i < overlays.length; i++) {
+      overlays[i].style.pointerEvents = "none";
+    }
+  }
+
+  function cleanupThemeSwitchUi() {
+    // Only reset scroll lock; do not hide Drawer/Modal nodes globally.
+    // Hiding these nodes can break OpenList side panel interactions.
+    unlockScroll();
+    clearStuckOverlays();
+    setTimeout(unlockScroll, 120);
+    setTimeout(clearStuckOverlays, 120);
+    setTimeout(unlockScroll, 320);
+    setTimeout(clearStuckOverlays, 320);
+  }
+
+  function getThemeTargets() {
+    return document.querySelectorAll(".hope-ui-light, .hope-ui-dark");
+  }
+
+  function detectTheme() {
+    var targets = getThemeTargets();
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].classList.contains("hope-ui-dark")) return "dark";
+    }
+    return "light";
+  }
+
+  function applyTheme(theme) {
+    var dark = theme === "dark";
+    var targets = getThemeTargets();
+
+    for (var i = 0; i < targets.length; i++) {
+      targets[i].classList.remove("hope-ui-light", "hope-ui-dark");
+      targets[i].classList.add(dark ? "hope-ui-dark" : "hope-ui-light");
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY, dark ? "dark" : "light");
+    } catch (_e) {}
+
+    cleanupThemeSwitchUi();
+  }
+
+  function toggleTheme(e) {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+
+    var next = detectTheme() === "light" ? "dark" : "light";
+    applyTheme(next);
+  }
+
+  function ensureSwitchButton() {
+    var btn = document.getElementById("hope-menu-daynight-switch-trigger");
+
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "hope-menu-daynight-switch-trigger";
+      btn.type = "button";
+      btn.setAttribute("aria-label", "switch layout");
+      btn.className = "hope-icon-button";
+      btn.innerHTML =
+        '<svg viewBox="0 0 1024 1024" width="1em" height="1em" aria-hidden="true">' +
+        '<path d="M512 0c282.7776 0 512 229.2224 512 512s-229.2224 512-512 512S0 794.7776 0 512 229.2224 0 512 0z m0 51.2a460.8 460.8 0 0 0-13.568 921.3952L512 972.8v-256a204.8 204.8 0 1 0 0-409.6V51.2z m0 256v409.6a204.8 204.8 0 1 1 0-409.6z" fill="currentColor"></path>' +
+        "</svg>";
+      document.body.appendChild(btn);
+    }
+
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", toggleTheme, true);
+    }
+  }
+
+function restoreTheme() {
+  var saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (_e) {}
+
+  if (saved === "light" || saved === "dark") {
+    applyTheme(saved);
+  } else {
+    applyTheme("dark");
+  }
+}
+
+  function boot() {
+    restoreTheme();
+    ensureSwitchButton();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 南+合集：专属公告开始 ===== -->
+
+<style>
+.custom-storage-notice {
+  max-width: 1040px;
+  margin: 16px auto 18px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+/* 日间模式 */
+.hope-ui-light .custom-storage-notice {
+  color: rgba(20, 24, 32, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 夜间模式 */
+.hope-ui-dark .custom-storage-notice {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.custom-storage-notice p {
+  margin: 0 0 14px;
+}
+
+.hope-ui-light .custom-storage-notice a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.hope-ui-dark .custom-storage-notice a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.custom-storage-notice a:hover {
+  text-decoration: underline;
+}
+
+.custom-storage-notice details {
+  margin-top: 8px;
+}
+
+.custom-storage-notice summary {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+#custom-storage-notice-wrap {
+  width: 100%;
+}
+</style>
+
+<script>
+(function () {
+  // 这里改成你需要显示公告的挂载路径
+  var TARGET_PATH = "/南+合集";
+
+  function getCurrentPath() {
+    try {
+      return decodeURIComponent(location.pathname);
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+
+  function shouldShowNotice() {
+    var path = getCurrentPath();
+    return path === TARGET_PATH || path.startsWith(TARGET_PATH + "/");
+  }
+
+  function removeNotice() {
+    var old = document.getElementById("custom-storage-notice-wrap");
+    if (old) old.remove();
+  }
+
+  function findFileList() {
+    return (
+      document.querySelector(".obj-box") ||
+      document.querySelector(".table")
+    );
+  }
+
+  function insertNotice() {
+    if (!shouldShowNotice()) {
+      removeNotice();
+      return;
+    }
+
+    // 每次重新定位前先移除旧公告，避免路由变化后位置错乱
+    removeNotice();
+
+    var table = findFileList();
+
+    // 文件列表还没渲染出来时，不要乱插，等 MutationObserver 再触发
+    if (!table || !table.parentNode) {
+      return;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.id = "custom-storage-notice-wrap";
+
+    // 这里改公告内容
+    wrap.innerHTML = `
+      <div class="custom-storage-notice">
+        <p><strong>本站默认解压密码一般是 south-plus</strong></p>
+
+        <p>
+          这是远程挂载目录，下载速度与上游站点状态有关。
+          如遇下载失败、限流或文件失效，请稍后重试。
+        </p>
+
+        <p>
+          批量下载建议使用页面右下角的齿轮按钮配置 Aria2，
+          然后多选文件发送到 Aria2 下载。
+        </p>
+
+        <p>
+          当前挂载建议使用 302 重定向策略，避免下载流量经过本站服务器。
+        </p>
+
+        <details>
+          <summary>更新日志</summary>
+          <p>这里可以写你自己的说明，不需要上传到对方目录。</p>
+        </details>
+      </div>
+    `;
+
+    // 永远插到文件列表下面
+    table.parentNode.insertBefore(wrap, table.nextSibling);
+  }
+
+  function refreshNotice() {
+    setTimeout(insertNotice, 80);
+    setTimeout(insertNotice, 300);
+    setTimeout(insertNotice, 800);
+  }
+
+  function hookRouteChange() {
+    if (window.__customStorageNoticeHooked) return;
+    window.__customStorageNoticeHooked = true;
+
+    var rawPushState = history.pushState;
+    var rawReplaceState = history.replaceState;
+
+    history.pushState = function () {
+      var ret = rawPushState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    history.replaceState = function () {
+      var ret = rawReplaceState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    window.addEventListener("popstate", refreshNotice);
+  }
+
+  function boot() {
+    hookRouteChange();
+    refreshNotice();
+
+    var observer = new MutationObserver(function () {
+      if (shouldShowNotice()) {
+        var existed = document.getElementById("custom-storage-notice-wrap");
+        var table = findFileList();
+
+        // 只有公告不存在，或者公告没有紧跟文件列表时，才重新插入
+        if (!existed || (table && table.nextSibling !== existed)) {
+          insertNotice();
+        }
+      } else {
+        removeNotice();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 南+合集：专属公告结束 ===== -->
+
+
+
+<!-- ===== 梓澪の妙妙屋：专属公告开始 ===== -->
+
+<style>
+.custom-storage-notice {
+  max-width: 1040px;
+  margin: 16px auto 18px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+/* 日间模式 */
+.hope-ui-light .custom-storage-notice {
+  color: rgba(20, 24, 32, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 夜间模式 */
+.hope-ui-dark .custom-storage-notice {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.custom-storage-notice p {
+  margin: 0 0 14px;
+}
+
+.hope-ui-light .custom-storage-notice a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.hope-ui-dark .custom-storage-notice a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.custom-storage-notice a:hover {
+  text-decoration: underline;
+}
+
+.custom-storage-notice details {
+  margin-top: 8px;
+}
+
+.custom-storage-notice summary {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+#custom-storage-notice-wrap {
+  width: 100%;
+}
+</style>
+
+<script>
+(function () {
+  // 这里改成你需要显示公告的挂载路径
+  var TARGET_PATH = "/梓澪の妙妙屋";
+
+  function getCurrentPath() {
+    try {
+      return decodeURIComponent(location.pathname);
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+
+  function shouldShowNotice() {
+    var path = getCurrentPath();
+    return path === TARGET_PATH || path.startsWith(TARGET_PATH + "/");
+  }
+
+  function removeNotice() {
+    var old = document.getElementById("custom-storage-notice-wrap");
+    if (old) old.remove();
+  }
+
+  function findFileList() {
+    return (
+      document.querySelector(".obj-box") ||
+      document.querySelector(".table")
+    );
+  }
+
+  function insertNotice() {
+    if (!shouldShowNotice()) {
+      removeNotice();
+      return;
+    }
+
+    // 每次重新定位前先移除旧公告，避免路由变化后位置错乱
+    removeNotice();
+
+    var table = findFileList();
+
+    // 文件列表还没渲染出来时，不要乱插，等 MutationObserver 再触发
+    if (!table || !table.parentNode) {
+      return;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.id = "custom-storage-notice-wrap";
+
+    // 这里改公告内容
+    wrap.innerHTML = `
+      <div class="custom-storage-notice">
+        <h3 style="margin:0 0 14px;font-size:20px;">👁️ 说明</h3>
+
+        <p><strong>本站默认解压密码一般是：</strong> south-plus</p>
+
+        <p>
+          本目录为远程挂载资源区，文件列表、下载速度和可用性均取决于上游站点状态。
+          如遇下载失败、限流、文件失效或短时间无法访问，请稍后重试。
+        </p>
+
+        <p>
+          当前挂载建议使用 <strong>302 重定向</strong> 策略，尽量避免下载流量经过本站服务器。
+          如果某些文件无法直连下载，可能需要临时切换代理策略。
+        </p>
+
+        <details open>
+          <summary><strong>常见问题</strong></summary>
+
+          <p><strong>关于下载</strong></p>
+          <ul>
+            <li>建议使用 Aria2 / Motrix 等下载工具进行批量下载。</li>
+            <li>批量下载前，请先点击页面右下角齿轮按钮，配置自己的 Aria2 参数。</li>
+            <li>如果下载速度较慢，请减少并发和线程数，避免触发上游限流。</li>
+          </ul>
+
+          <p><strong>关于搜索</strong></p>
+          <ul>
+            <li>搜索时不要输入太长的完整名称，建议输入游戏名中较独特的几个字。</li>
+            <li>部分作品可能存在译名、日文原名、英文名差异，搜不到时可以换关键词。</li>
+            <li>请尽量直接复制游戏名，避免手打错字。</li>
+          </ul>
+
+          <p><strong>关于解压密码</strong></p>
+          <ul>
+            <li>大部分资源默认密码为 <strong>south-plus</strong>。</li>
+            <li>如果资源目录下有单独说明，请以目录内说明为准。</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary><strong>📦 更新说明</strong></summary>
+          <ul>
+            <li>本站仅做远程挂载索引，不保证上游资源长期可用。</li>
+            <li>已有资源一般不会频繁更新，新版本可自行搜索其他来源。</li>
+            <li>如果目录加载较慢，通常是上游站点响应慢，并非本站前端故障。</li>
+          </ul>
+        </details>
+
+        <p style="margin-top:16px;opacity:.78;font-size:14px;">
+          请温柔取用资源，不要高并发扫目录或长时间满速拉取。服务器和上游都会累的，哼。
+        </p>
+      </div>
+    `;
+
+    // 永远插到文件列表下面
+    table.parentNode.insertBefore(wrap, table.nextSibling);
+  }
+
+  function refreshNotice() {
+    setTimeout(insertNotice, 80);
+    setTimeout(insertNotice, 300);
+    setTimeout(insertNotice, 800);
+  }
+
+  function hookRouteChange() {
+    if (window.__customStorageNoticeHooked) return;
+    window.__customStorageNoticeHooked = true;
+
+    var rawPushState = history.pushState;
+    var rawReplaceState = history.replaceState;
+
+    history.pushState = function () {
+      var ret = rawPushState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    history.replaceState = function () {
+      var ret = rawReplaceState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    window.addEventListener("popstate", refreshNotice);
+  }
+
+  function boot() {
+    hookRouteChange();
+    refreshNotice();
+
+    var observer = new MutationObserver(function () {
+      if (shouldShowNotice()) {
+        var existed = document.getElementById("custom-storage-notice-wrap");
+        var table = findFileList();
+
+        // 只有公告不存在，或者公告没有紧跟文件列表时，才重新插入
+        if (!existed || (table && table.nextSibling !== existed)) {
+          insertNotice();
+        }
+      } else {
+        removeNotice();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 梓澪の妙妙屋：专属公告结束 ===== -->
+
