@@ -1,22 +1,40 @@
+<!-- ===== 南+合集：专属公告开始 ===== -->
+
 <style>
 .custom-storage-notice {
   max-width: 1040px;
   margin: 16px auto 18px;
   padding: 22px 28px;
   border-radius: 18px;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(18, 18, 26, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   line-height: 1.9;
   font-size: 16px;
+}
+
+/* 日间模式 */
+.hope-ui-light .custom-storage-notice {
+  color: rgba(20, 24, 32, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 夜间模式 */
+.hope-ui-dark .custom-storage-notice {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .custom-storage-notice p {
   margin: 0 0 14px;
 }
 
-.custom-storage-notice a {
+.hope-ui-light .custom-storage-notice a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.hope-ui-dark .custom-storage-notice a {
   color: #38bdf8;
   text-decoration: none;
 }
@@ -33,11 +51,15 @@
   cursor: pointer;
   opacity: 0.9;
 }
+
+#custom-storage-notice-wrap {
+  width: 100%;
+}
 </style>
 
 <script>
 (function () {
-  // 输入需要公告的挂载路径
+  // 这里改成你需要显示公告的挂载路径
   var TARGET_PATH = "/南+合集";
 
   function getCurrentPath() {
@@ -58,12 +80,10 @@
     if (old) old.remove();
   }
 
-  function findInsertTarget() {
+  function findFileList() {
     return (
-      document.querySelector(".body") ||
-      document.querySelector("main") ||
-      document.querySelector("#root") ||
-      document.body
+      document.querySelector(".obj-box") ||
+      document.querySelector(".table")
     );
   }
 
@@ -73,15 +93,20 @@
       return;
     }
 
-    if (document.getElementById("custom-storage-notice-wrap")) return;
+    // 每次重新定位前先移除旧公告，避免路由变化后位置错乱
+    removeNotice();
 
-    var target = findInsertTarget();
-    if (!target) return;
+    var table = findFileList();
+
+    // 文件列表还没渲染出来时，不要乱插，等 MutationObserver 再触发
+    if (!table || !table.parentNode) {
+      return;
+    }
 
     var wrap = document.createElement("div");
     wrap.id = "custom-storage-notice-wrap";
 
-    // 某个存储专属公告内容
+    // 这里改公告内容
     wrap.innerHTML = `
       <div class="custom-storage-notice">
         <p><strong>本站默认解压密码一般是 south-plus</strong></p>
@@ -107,41 +132,20 @@
       </div>
     `;
 
-    var footer = Array.prototype.slice.call(document.querySelectorAll("div, span, p, a"))
-      .find(function (el) {
-        var text = (el.textContent || "").trim();
-        return text.includes("由 OpenList 驱动") && text.includes("管理");
-      });
-
-    if (footer) {
-      var footerBlock =
-        footer.closest(".footer") ||
-        footer.closest("[class*='Footer']") ||
-        footer.closest("[class*='footer']") ||
-        footer.parentElement;
-
-      if (footerBlock && footerBlock.parentNode) {
-        footerBlock.parentNode.insertBefore(wrap, footerBlock);
-      } else {
-        target.appendChild(wrap);
-      }
-    } else {
-      var table = document.querySelector(".obj-box") || document.querySelector(".table");
-
-      if (table && table.parentNode) {
-        table.parentNode.insertBefore(wrap, table.nextSibling);
-      } else {
-        target.appendChild(wrap);
-      }
-    }
+    // 永远插到文件列表下面
+    table.parentNode.insertBefore(wrap, table.nextSibling);
   }
 
   function refreshNotice() {
     setTimeout(insertNotice, 80);
     setTimeout(insertNotice, 300);
+    setTimeout(insertNotice, 800);
   }
 
   function hookRouteChange() {
+    if (window.__customStorageNoticeHooked) return;
+    window.__customStorageNoticeHooked = true;
+
     var rawPushState = history.pushState;
     var rawReplaceState = history.replaceState;
 
@@ -165,7 +169,17 @@
     refreshNotice();
 
     var observer = new MutationObserver(function () {
-      insertNotice();
+      if (shouldShowNotice()) {
+        var existed = document.getElementById("custom-storage-notice-wrap");
+        var table = findFileList();
+
+        // 只有公告不存在，或者公告没有紧跟文件列表时，才重新插入
+        if (!existed || (table && table.nextSibling !== existed)) {
+          insertNotice();
+        }
+      } else {
+        removeNotice();
+      }
     });
 
     observer.observe(document.body, {
@@ -181,3 +195,5 @@
   }
 })();
 </script>
+
+<!-- ===== 南+合集：专属公告结束 ===== -->
