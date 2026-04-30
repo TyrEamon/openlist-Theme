@@ -1,0 +1,339 @@
+<!-- ===== 多挂载路径：专属公告开始 ===== -->
+
+<style>
+.custom-storage-notice {
+  max-width: 1040px;
+  margin: 16px auto 18px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+/* 日间模式 */
+.hope-ui-light .custom-storage-notice {
+  color: rgba(20, 24, 32, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 夜间模式 */
+.hope-ui-dark .custom-storage-notice {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.custom-storage-notice h3 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.custom-storage-notice p {
+  margin: 0 0 14px;
+}
+
+.custom-storage-notice ul {
+  margin: 8px 0 14px 1.2em;
+  padding: 0;
+}
+
+.custom-storage-notice li {
+  margin: 4px 0;
+}
+
+.hope-ui-light .custom-storage-notice a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.hope-ui-dark .custom-storage-notice a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.custom-storage-notice a:hover {
+  text-decoration: underline;
+}
+
+.custom-storage-notice details {
+  margin-top: 8px;
+}
+
+.custom-storage-notice summary {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+#custom-storage-notice-wrap {
+  width: 100%;
+}
+</style>
+
+<script>
+(function () {
+  /*
+   * 多挂载公告配置
+   *
+   * path：你的 OpenList 挂载路径
+   * html：这个路径下显示的公告内容
+   *
+   * 例如：
+   * /南+合集 会匹配：
+   * /南+合集
+   * /南+合集/子目录
+   */
+
+  var NOTICE_CONFIGS = [
+    {
+      path: "/南+合集",
+      html: `
+        <div class="custom-storage-notice">
+          <p><strong>本站默认解压密码一般是 south-plus</strong></p>
+
+          <p>
+            这是远程挂载目录，下载速度与上游站点状态有关。
+            如遇下载失败、限流或文件失效，请稍后重试。
+          </p>
+
+         <p>
+            批量下载建议使用页面右下角的齿轮按钮配置 Aria2，
+            然后多选文件发送到 Aria2 下载。
+         </p>
+
+         <p>
+           当前挂载建议使用 302 重定向策略，避免下载流量经过本站服务器。
+         </p>
+
+         <details>
+           <summary>更新日志</summary>
+           <p>这里可以写你自己的说明，不需要上传到对方目录。</p>
+      </details>
+    </div>
+  `
+}，
+{
+  path: "/梓澪の妙妙屋",
+  html: `
+    <div class="custom-storage-notice">
+      <h3>👁️ 说明</h3>
+
+      <ul>
+        <li><strong>资源总量：</strong> 51.284 TB</li>
+        <li>
+          <strong>网站线路：</strong>
+          <ul>
+            <li>
+              <strong>ZIO CDN（推荐）：</strong>
+              <a href="https://zi0.cc" target="_blank">zi0.cc</a> |
+              <a href="https://zi1.cc" target="_blank">zi1.cc</a> |
+              <a href="https://zi6.cc" target="_blank">zi6.cc</a> |
+              <a href="https://gal.games" target="_blank">gal.games</a> |
+              <a href="https://get.galgame.ing" target="_blank">get.galgame.ing</a>
+            </li>
+            <li>
+              <strong>Cloudflare CDN：</strong>
+              <a href="https://zi4.cc" target="_blank">zi4.cc</a> |
+              <a href="https://zi8.cc" target="_blank">zi8.cc</a> |
+              <a href="https://gal.ga" target="_blank">gal.ga</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <details open>
+        <summary><strong>❔ 常见问题</strong></summary>
+
+        <p><strong>关于存储</strong></p>
+        <ul>
+          <li>本目录为远程挂载资源区，实际存储与上游站点有关。</li>
+          <li>资源列表、下载速度和可用性均取决于上游状态。</li>
+          <li>如遇文件失效、目录加载失败或短时间无法访问，请稍后重试。</li>
+        </ul>
+
+        <p><strong>关于更新</strong></p>
+        <ul>
+          <li>资源由上游维护，更新频率不固定。</li>
+          <li>新出的 Galgame 可以先去南+或其他资源站搜索。</li>
+          <li>站内已有游戏一般不会频繁更新，有新版本可自行寻找来源。</li>
+        </ul>
+
+        <p><strong>关于搜索</strong></p>
+        <ul>
+          <li>本站支持模糊搜索，用空格隔开关键词。</li>
+          <li>搜索时不要输入太长的游戏名，只输入游戏名中不常见的几个字即可。</li>
+          <li>如果中文名搜不到，可以尝试日文原名、英文名、会社名或简称。</li>
+          <li>搜索时注意不要打错字，尽量直接复制游戏名。</li>
+        </ul>
+
+        <p><strong>关于解压密码</strong></p>
+        <ul>
+          <li>网站里的资源一般是重新打包过的，部分资源可能没有密码。</li>
+          <li>如果有密码，通常会写在资源所在目录或说明文件里。</li>
+          <li>南+相关资源可优先尝试 <strong>south-plus</strong>。</li>
+        </ul>
+
+        <p><strong>下载速度慢？</strong></p>
+        <ul>
+          <li>网站里的资源并不一定限速，速度受上游、线路和本地网络影响。</li>
+          <li>如果下载太慢，建议使用高速全局代理，或使用多线程下载器。</li>
+          <li>批量下载建议使用 Aria2 / Motrix，并适当降低线程数，避免触发上游限流。</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary><strong>📘 下载教程</strong></summary>
+        <ul>
+          <li>可以使用 Aria2 批量下载，并保持目录结构。</li>
+          <li>在 OpenList 页面右下角齿轮按钮中配置自己的 Aria2 参数。</li>
+          <li>配置完成后，多选文件或目录发送到 Aria2 下载。</li>
+          <li>当前挂载建议使用 <strong>302 重定向</strong> 策略，尽量避免下载流量经过本站服务器。</li>
+        </ul>
+      </details>
+
+      <p style="margin-top:16px;opacity:.78;font-size:14px;">
+        本站仅作远程挂载索引展示，不保证上游资源长期可用。请温柔取用资源，不要高并发扫目录或长时间满速拉取。
+      </p>
+    </div>
+  `
+}
+
+  ];
+
+  function getCurrentPath() {
+    try {
+      return decodeURIComponent(location.pathname);
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+
+  function normalizePath(path) {
+    if (!path) return "/";
+    if (path.length > 1 && path.endsWith("/")) {
+      return path.slice(0, -1);
+    }
+    return path;
+  }
+
+  function getMatchedNotice() {
+    var path = normalizePath(getCurrentPath());
+
+    for (var i = 0; i < NOTICE_CONFIGS.length; i++) {
+      var item = NOTICE_CONFIGS[i];
+      var itemPath = normalizePath(item.path);
+
+      if (path === itemPath || path.startsWith(itemPath + "/")) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  function shouldShowNotice() {
+    return !!getMatchedNotice();
+  }
+
+  function removeNotice() {
+    var old = document.getElementById("custom-storage-notice-wrap");
+    if (old) old.remove();
+  }
+
+  function findFileList() {
+    return (
+      document.querySelector(".obj-box") ||
+      document.querySelector(".table")
+    );
+  }
+
+  function insertNotice() {
+    var matched = getMatchedNotice();
+
+    if (!matched) {
+      removeNotice();
+      return;
+    }
+
+    // 每次重新定位前先移除旧公告，避免路由变化后位置错乱
+    removeNotice();
+
+    var table = findFileList();
+
+    // 文件列表还没渲染出来时，不要乱插，等 MutationObserver 再触发
+    if (!table || !table.parentNode) {
+      return;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.id = "custom-storage-notice-wrap";
+    wrap.innerHTML = matched.html;
+
+    // 永远插到文件列表下面
+    table.parentNode.insertBefore(wrap, table.nextSibling);
+  }
+
+  function refreshNotice() {
+    setTimeout(insertNotice, 80);
+    setTimeout(insertNotice, 300);
+    setTimeout(insertNotice, 800);
+  }
+
+  function hookRouteChange() {
+    if (window.__customStorageNoticeHooked) return;
+    window.__customStorageNoticeHooked = true;
+
+    var rawPushState = history.pushState;
+    var rawReplaceState = history.replaceState;
+
+    history.pushState = function () {
+      var ret = rawPushState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    history.replaceState = function () {
+      var ret = rawReplaceState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    window.addEventListener("popstate", refreshNotice);
+  }
+
+  function boot() {
+    hookRouteChange();
+    refreshNotice();
+
+    var observer = new MutationObserver(function () {
+      var matched = getMatchedNotice();
+
+      if (matched) {
+        var existed = document.getElementById("custom-storage-notice-wrap");
+        var table = findFileList();
+
+        // 只有公告不存在，或者公告没有紧跟文件列表时，才重新插入
+        if (!existed || (table && table.nextSibling !== existed)) {
+          insertNotice();
+        }
+      } else {
+        removeNotice();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 多挂载路径：专属公告结束 ===== -->
