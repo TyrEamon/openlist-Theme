@@ -105,8 +105,14 @@
     
     <!-- 某个存储专属公告结束 -->
 
-    target.prepend(wrap);
+  var table = document.querySelector(".obj-box") || document.querySelector(".table");
+
+  if (table && table.parentNode) {
+    table.parentNode.insertBefore(wrap, table.nextSibling);
+  } else {
+    target.appendChild(wrap);
   }
+    }
 
   function refreshNotice() {
     setTimeout(insertNotice, 80);
