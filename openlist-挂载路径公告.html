@@ -1,0 +1,155 @@
+<style>
+.custom-storage-notice {
+  max-width: 1040px;
+  margin: 22px auto;
+  padding: 22px 28px;
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+.custom-storage-notice p {
+  margin: 0 0 14px;
+}
+
+.custom-storage-notice a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.custom-storage-notice a:hover {
+  text-decoration: underline;
+}
+
+.custom-storage-notice details {
+  margin-top: 8px;
+}
+
+.custom-storage-notice summary {
+  cursor: pointer;
+  opacity: 0.9;
+}
+</style>
+
+<script>
+(function () {
+  var TARGET_PATH = "/南+合集";     <!-- 输入需要公告的挂载路径 -->
+
+  function getCurrentPath() {
+    try {
+      return decodeURIComponent(location.pathname);
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+
+  function shouldShowNotice() {
+    var path = getCurrentPath();
+    return path === TARGET_PATH || path.startsWith(TARGET_PATH + "/");
+  }
+
+  function removeNotice() {
+    var old = document.getElementById("custom-storage-notice-wrap");
+    if (old) old.remove();
+  }
+
+  function findInsertTarget() {
+    return (
+      document.querySelector(".body") ||
+      document.querySelector("main") ||
+      document.querySelector("#root") ||
+      document.body
+    );
+  }
+
+  function insertNotice() {
+    if (!shouldShowNotice()) {
+      removeNotice();
+      return;
+    }
+
+    if (document.getElementById("custom-storage-notice-wrap")) return;
+
+    var target = findInsertTarget();
+    if (!target) return;
+
+    var wrap = document.createElement("div");
+    wrap.id = "custom-storage-notice-wrap";
+    
+    <!-- 某个存储专属公告内容 -->
+      
+    wrap.innerHTML = `
+      <div class="custom-storage-notice">
+        <p><strong>本站默认解压密码一般是 south-plus</strong></p>
+        <p>
+          这是远程挂载目录，下载速度与上游站点状态有关。
+          如遇下载失败、限流或文件失效，请稍后重试。
+        </p>
+        <p>
+          批量下载建议使用页面右下角的齿轮按钮配置 Aria2，
+          然后多选文件发送到 Aria2 下载。
+        </p>
+        <p>
+          当前挂载建议使用 302 重定向策略，避免下载流量经过本站服务器。
+        </p>
+        <details>
+          <summary>更新日志</summary>
+          <p>这里可以写你自己的说明，不需要上传到对方目录。</p>
+        </details>
+      </div>
+    `;
+    
+    <!-- 某个存储专属公告结束 -->
+
+    target.prepend(wrap);
+  }
+
+  function refreshNotice() {
+    setTimeout(insertNotice, 80);
+    setTimeout(insertNotice, 300);
+  }
+
+  function hookRouteChange() {
+    var rawPushState = history.pushState;
+    var rawReplaceState = history.replaceState;
+
+    history.pushState = function () {
+      var ret = rawPushState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    history.replaceState = function () {
+      var ret = rawReplaceState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    window.addEventListener("popstate", refreshNotice);
+  }
+
+  function boot() {
+    hookRouteChange();
+    refreshNotice();
+
+    var observer = new MutationObserver(function () {
+      insertNotice();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
