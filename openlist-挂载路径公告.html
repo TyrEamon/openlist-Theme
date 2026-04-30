@@ -37,7 +37,8 @@
 
 <script>
 (function () {
-  var TARGET_PATH = "/南+合集";     <!-- 输入需要公告的挂载路径 -->
+  // 输入需要公告的挂载路径
+  var TARGET_PATH = "/南+合集";
 
   function getCurrentPath() {
     try {
@@ -79,40 +80,41 @@
 
     var wrap = document.createElement("div");
     wrap.id = "custom-storage-notice-wrap";
-    
-    <!-- 某个存储专属公告内容 -->
-      
+
+    // 某个存储专属公告内容
     wrap.innerHTML = `
       <div class="custom-storage-notice">
         <p><strong>本站默认解压密码一般是 south-plus</strong></p>
+
         <p>
           这是远程挂载目录，下载速度与上游站点状态有关。
           如遇下载失败、限流或文件失效，请稍后重试。
         </p>
+
         <p>
           批量下载建议使用页面右下角的齿轮按钮配置 Aria2，
           然后多选文件发送到 Aria2 下载。
         </p>
+
         <p>
           当前挂载建议使用 302 重定向策略，避免下载流量经过本站服务器。
         </p>
+
         <details>
           <summary>更新日志</summary>
           <p>这里可以写你自己的说明，不需要上传到对方目录。</p>
         </details>
       </div>
     `;
-    
-    <!-- 某个存储专属公告结束 -->
 
-  var table = document.querySelector(".obj-box") || document.querySelector(".table");
+    var table = document.querySelector(".obj-box") || document.querySelector(".table");
 
-  if (table && table.parentNode) {
-    table.parentNode.insertBefore(wrap, table.nextSibling);
-  } else {
-    target.appendChild(wrap);
-  }
+    if (table && table.parentNode) {
+      table.parentNode.insertBefore(wrap, table.nextSibling);
+    } else {
+      target.appendChild(wrap);
     }
+  }
 
   function refreshNotice() {
     setTimeout(insertNotice, 80);
