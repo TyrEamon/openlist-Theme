@@ -107,13 +107,24 @@
       </div>
     `;
 
-    var footer =
-      document.querySelector(".footer") ||
-      document.querySelector(".footer-left") ||
-      document.querySelector("[class*='footer']");
+    var footer = Array.prototype.slice.call(document.querySelectorAll("div, span, p, a"))
+      .find(function (el) {
+        var text = (el.textContent || "").trim();
+        return text.includes("由 OpenList 驱动") && text.includes("管理");
+      });
 
-    if (footer && footer.parentNode) {
-      footer.parentNode.insertBefore(wrap, footer);
+    if (footer) {
+      var footerBlock =
+        footer.closest(".footer") ||
+        footer.closest("[class*='Footer']") ||
+        footer.closest("[class*='footer']") ||
+        footer.parentElement;
+
+      if (footerBlock && footerBlock.parentNode) {
+        footerBlock.parentNode.insertBefore(wrap, footerBlock);
+      } else {
+        target.appendChild(wrap);
+      }
     } else {
       var table = document.querySelector(".obj-box") || document.querySelector(".table");
 
