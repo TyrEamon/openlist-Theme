@@ -338,13 +338,16 @@ button#hope-menu-daynight-switch-trigger {
     }
   }
 
-  function restoreTheme() {
-    var saved = null;
-    try { saved = localStorage.getItem(STORAGE_KEY); } catch (_e) {}
-    if (saved === "light" || saved === "dark") {
-      applyTheme(saved);
-    }
+function restoreTheme() {
+  var saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (_e) {}
+
+  if (saved === "light" || saved === "dark") {
+    applyTheme(saved);
+  } else {
+    applyTheme("dark");
   }
+}
 
   function boot() {
     restoreTheme();
