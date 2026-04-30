@@ -1,7 +1,7 @@
 <style>
 .custom-storage-notice {
   max-width: 1040px;
-  margin: 22px auto;
+  margin: 16px auto 18px;
   padding: 22px 28px;
   border-radius: 18px;
   color: rgba(255, 255, 255, 0.92);
@@ -107,12 +107,21 @@
       </div>
     `;
 
-    var table = document.querySelector(".obj-box") || document.querySelector(".table");
+    var footer =
+      document.querySelector(".footer") ||
+      document.querySelector(".footer-left") ||
+      document.querySelector("[class*='footer']");
 
-    if (table && table.parentNode) {
-      table.parentNode.insertBefore(wrap, table.nextSibling);
+    if (footer && footer.parentNode) {
+      footer.parentNode.insertBefore(wrap, footer);
     } else {
-      target.appendChild(wrap);
+      var table = document.querySelector(".obj-box") || document.querySelector(".table");
+
+      if (table && table.parentNode) {
+        table.parentNode.insertBefore(wrap, table.nextSibling);
+      } else {
+        target.appendChild(wrap);
+      }
     }
   }
 
