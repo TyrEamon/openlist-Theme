@@ -1,232 +1,705 @@
 <script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=String.prototype.replaceAll"></script>
-<style> .notify-render .hope-close-button {
-    display:none
+
+<style>
+:root {
+  --ol-rand-bg: none;
 }
-.hope-ui-light {
-    background-image:url("https://pan.0106010.xyz/file/openlist-Theme/1771838991109_130584045_p0.webp") !important;
-    @media (max-aspect-ratio:1) {
-        background-image:url("https://pan.0106010.xyz/file/openlist-Theme/1771838999793_file_6179.webp") !important;
-    }
-    background-repeat:no-repeat;
-    background-size:cover;
-    background-attachment:fixed;
-    background-position-x:center
+
+/* 关闭默认通知 X */
+.notify-render .hope-close-button {
+  display: none;
 }
+
+/* 背景层：独立 fixed，不跟内容层滚动 */
+#ol-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--ol-rand-bg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-color: #0b0b0b; /* 随机图没加载时纯色兜底 */
+}
+
+/* 内容层抬到背景之上 */
+#root,
+.App {
+  position: relative;
+}
+
+/* 清掉大容器背景，避免底部黑块 */
+html,
+body,
+#root,
+.App,
+.hope-ui-light,
 .hope-ui-dark {
-     background-image:url("https://pan.0106010.xyz/file/openlist-Theme/1771839006594_openlist1.webp") !important;
-    @media (max-aspect-ratio:1) {
-        background-image:url("https://pan.0106010.xyz/file/openlist-Theme/1771838992434_1673371139204.webp") !important;
-    }
-    background-repeat:no-repeat;
-    background-size:cover;
-    background-attachment:fixed;
-    background-position-x:center
+  background: transparent !important;
 }
-.hope-ui-light .obj-box.hope-stack.hope-c-dhzjXW.hope-c-PJLV.hope-c-PJLV-igScBhH-css {
-    backdrop-filter: blur(1px);
-    background-color:rgba(255,255,255,0.7) !important
-}
-.hope-ui-dark .obj-box.hope-stack.hope-c-dhzjXW.hope-c-PJLV.hope-c-PJLV-iigjoxS-css {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
-.hope-ui-light .hope-c-PJLV.hope-c-PJLV-ikSuVsl-css {
-    backdrop-filter: blur(1px);
-    background-color:rgba(255,255,255,0.5) !important
-}
-.hope-ui-dark .hope-c-PJLV.hope-c-PJLV-iiuDLME-css {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
-.hope-ui-light .hope-c-ivMHWx-hZistB-cv.hope-icon-button {
-    backdrop-filter: blur(1px);
-    background-color:rgba(255,255,255,0.5) !important
-}
-.hope-ui-dark .hope-c-ivMHWx-hZistB-cv.hope-icon-button {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
-.hope-ui-light .hope-c-PJLV-ijgzmFG-css {
-    backdrop-filter: blur(1px);
-    background-color:rgba(255,255,255,0.5) !important
-}
-.hope-ui-dark .hope-c-PJLV-ijgzmFG-css {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
-.hope-ui-light pre {
-    background-color:rgba(255,255,255,0.1) !important
-}
-.hope-ui-dark pre {
-    background-color:rgba(255,255,255,0) !important
-}
-.hope-ui-light .hope-c-PJLV-ieGWMbI-css {
-    backdrop-filter: blur(1px);
-    background:rgba(255,255,255,0.5) !important
-}
-.hope-ui-dark .hope-c-PJLV-ieGWMbI-css {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
-.hope-ui-light .hope-c-PJLV-ihVEsOa-css {
-    backdrop-filter: blur(1px);
-    background:rgba(255,255,255,0.5) !important
-}
-.hope-ui-dark .hope-c-PJLV-ihVEsOa-css {
-    backdrop-filter: blur(1px);
-    background-color:rgb(0 0 0 / 50%) !important
-}
+
+/* 头部渐变 */
 #root > .header {
-    background:linear-gradient(180deg,rgba(255,255,255,0.3),rgba(255,255,255,0))
+  background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
 }
+
+/* 底部渐变条 */
 .footerd {
-    width: 100vw;
-    height: 5vh;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    background:linear-gradient(0deg,rgba(255,255,255,0.3),rgba(255,255,255,0))
+  width: 100vw;
+  height: 5vh;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(255,255,255,0.30), rgba(255,255,255,0));
 }
-.hope-ui-light .body > .nav {
-    background-color:rgba(255,255,255,0.7);
-    border-radius:var(--hope-radii-xl)
+
+/* 面板玻璃化（稳定选择器） */
+.hope-ui-light .obj-box,
+.hope-ui-light .body > .nav,
+.hope-ui-light .hope-icon-button,
+.hope-ui-light pre {
+  backdrop-filter: blur(1px);
+  background-color: rgba(255,255,255,0.65) !important;
 }
-.hope-ui-dark .body > .nav {
-    background-color:rgb(0 0 0 / 50%);
-    border-radius:var(--hope-radii-xl)
+
+.hope-ui-dark .obj-box,
+.hope-ui-dark .body > .nav,
+.hope-ui-dark .hope-icon-button,
+.hope-ui-dark pre {
+  backdrop-filter: blur(1px);
+  background-color: rgb(0 0 0 / 50%) !important;
+}
+
+.body > .nav {
+  border-radius: var(--hope-radii-xl);
 }
 .body > .nav::after {
-    display:none
-}
-dibu {
-    border-top:0px;
-    position:absolute;
-    bottom:0;
-    width:100%;
-    margin:0px;
-    padding:0px
-}
-.App {
-    min-height:85vh
-}
-.table {
-    margin:auto
-}
-#canvas-basic {
-    position:fixed;
-    display:block;
-    width:100%;
-    height:100%;
-    top:0;
-    right:0;
-    bottom:0;
-    left:0;
-    z-index:-999
-}
-.hope-image {
-    filter:drop-shadow(2px 4px 8px rgb(255,255,255))
-}
-button#hope-menu-daynight-switch-trigger {
-    position: fixed;
-    bottom: 7.5vh;
-    left: 2.5vw;
-    z-index: 114;
-    size: var(--hope-sizes-8);
+  display: none;
 }
 
-/* fallback panel colors when OpenList hash classes change */
-.hope-ui-light .obj-box {
-    background-color: rgba(255,255,255,0.65) !important;
+.table {
+  margin: auto;
 }
-.hope-ui-dark .obj-box {
-    background-color: rgb(0 0 0 / 50%) !important;
+
+.hope-image {
+  filter: drop-shadow(2px 4px 8px rgb(255,255,255));
+}
+
+/* 日夜按钮 */
+button#hope-menu-daynight-switch-trigger {
+  position: fixed;
+  bottom: 7.5vh;
+  left: 2.5vw;
+  z-index: 114;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
 }
 </style>
+
+<!-- 创建固定背景层 + 底部渐变 -->
 <script>
-    document.write(`<div class="footerd"></div>`);
+(function () {
+  function ensureBgLayer() {
+    if (!document.getElementById("ol-bg-layer")) {
+      var bg = document.createElement("div");
+      bg.id = "ol-bg-layer";
+      document.body.insertBefore(bg, document.body.firstChild);
+    }
+  }
+
+  function ensureFooter() {
+    if (!document.querySelector(".footerd")) {
+      var el = document.createElement("div");
+      el.className = "footerd";
+      document.body.appendChild(el);
+    }
+  }
+
+  function boot() {
+    ensureBgLayer();
+    ensureFooter();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
 </script>
-<!-- 日夜主题切换按钮 | Day/Night Switch Button -->
+
+<!-- 随机背景（用 rapi random-img-only.js，不走 /random/h 路由）-->
 <script>
-    function unlockScroll() {
-        var docEl = document.documentElement;
-        var body = document.body;
-        if (docEl) {
-            docEl.style.overflow = "";
-            docEl.style.overflowY = "";
-            docEl.style.position = "";
-            docEl.style.width = "";
-        }
-        if (body) {
-            body.style.overflow = "";
-            body.style.overflowY = "";
-            body.style.position = "";
-            body.style.width = "";
-            body.style.paddingRight = "";
-            body.style.touchAction = "";
-        }
+(function () {
+  var RANDOM_SCRIPT = "https://rapi.kyr.us.ci/random-img-only.js";
+  var RANDOM_SCRIPT_ID = "ol-random-img-only-script";
+
+  function pickRandomUrl() {
+    var portrait = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    if (portrait && typeof window.getRandomPicV === "function") return window.getRandomPicV();
+    if (!portrait && typeof window.getRandomPicH === "function") return window.getRandomPicH();
+    if (typeof window.getRandomPicH === "function") return window.getRandomPicH();
+    if (typeof window.getRandomPicV === "function") return window.getRandomPicV();
+    return "";
+  }
+
+  function applyRandomBg() {
+    var url = pickRandomUrl();
+    if (!url) return;
+
+    var img = new Image();
+    img.onload = function () {
+      document.documentElement.style.setProperty("--ol-rand-bg", 'url("' + url + '")');
+    };
+    img.onerror = function () {
+      console.warn("[openlist-header] random bg load failed:", url);
+    };
+    img.src = url;
+  }
+
+  function waitReadyThenApply() {
+    if (window.__randomPicApiReady || typeof window.getRandomPicH === "function" || typeof window.getRandomPicV === "function") {
+      applyRandomBg();
+      return;
     }
 
-    function cleanupThemeSwitchUi() {
-        if (document.querySelectorAll) {
-            var leftovers = document.querySelectorAll(".hope-drawer__overlay, .hope-drawer__content-container, .hope-modal__overlay");
-            for (var i = 0; i < leftovers.length; i++) {
-                leftovers[i].style.display = "none";
-                leftovers[i].style.pointerEvents = "none";
-            }
-        }
+    window.addEventListener("random-pic-api:ready", function () {
+      applyRandomBg();
+    }, { once: true });
 
-        unlockScroll();
-        setTimeout(unlockScroll, 120);
-        setTimeout(unlockScroll, 320);
+    setTimeout(applyRandomBg, 1200);
+  }
+
+  function loadRandomRuntime() {
+    if (document.getElementById(RANDOM_SCRIPT_ID)) {
+      waitReadyThenApply();
+      return;
     }
 
-    function getThemeTargets() {
-        if (!document.querySelectorAll) return [];
-        return document.querySelectorAll(".hope-ui-light, .hope-ui-dark");
+    var s = document.createElement("script");
+    s.id = RANDOM_SCRIPT_ID;
+    s.src = RANDOM_SCRIPT;
+    s.async = true;
+    s.onload = waitReadyThenApply;
+    s.onerror = function () {
+      console.warn("[openlist-header] failed to load random-img-only.js");
+    };
+    document.head.appendChild(s);
+  }
+
+  function boot() {
+    loadRandomRuntime();
+
+    var mql = window.matchMedia("(max-aspect-ratio: 1/1)");
+    if (mql && mql.addEventListener) {
+      mql.addEventListener("change", function () {
+        applyRandomBg();
+      });
+    } else if (mql && mql.addListener) {
+      mql.addListener(function () {
+        applyRandomBg();
+      });
     }
+  }
 
-    function daynightswitch(e) {
-        if (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-        }
-
-        var targets = getThemeTargets();
-        if (!targets.length) return;
-
-        var toDark = false;
-        for (var i = 0; i < targets.length; i++) {
-            if (targets[i].classList.contains("hope-ui-light")) {
-                toDark = true;
-                break;
-            }
-        }
-
-        for (var j = 0; j < targets.length; j++) {
-            targets[j].classList.remove("hope-ui-light", "hope-ui-dark");
-            targets[j].classList.add(toDark ? "hope-ui-dark" : "hope-ui-light");
-        }
-
-        cleanupThemeSwitchUi();
-    }
-
-    if (!document.getElementById("hope-menu-daynight-switch-trigger")) {
-        document.write(`<button
-    class="hope-c-bvjbhC hope-c-PJLV hope-c-PJLV-ieTGfmR-css hope-icon-button hope-button hope-c-ivMHWx hope-c-ivMHWx-kcPQpq-variant-subtle hope-c-ivMHWx-cEknLI-size-lg hope-c-ivMHWx-dvmlqS-cv hope-c-ivMHWx-hZistB-cv hope-c-PJLV hope-c-PJLV-iikaotv-css"
-    type="button" role="button" id="hope-menu-daynight-switch-trigger" aria-label="switch layout"><svg t="1733225100292"
-        class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4397"
-        xmlns:xlink="http://www.w3.org/1999/xlink" width="1em" height="1em">
-        <path
-            d="M512 0c282.7776 0 512 229.2224 512 512s-229.2224 512-512 512S0 794.7776 0 512 229.2224 0 512 0z m0 51.2a460.8 460.8 0 0 0-13.568 921.3952L512 972.8v-256a204.8 204.8 0 1 0 0-409.6V51.2z m0 256v409.6a204.8 204.8 0 1 1 0-409.6z"
-            fill="currentColor" p-id="4398"></path>
-    </svg></button>`);
-    }
-
-    var dayNightBtn = document.getElementById("hope-menu-daynight-switch-trigger");
-    if (dayNightBtn && !dayNightBtn.dataset.bound) {
-        dayNightBtn.dataset.bound = "1";
-        dayNightBtn.addEventListener("click", daynightswitch, true);
-    }
-
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
 </script>
+
+<!-- 日夜主题切换 -->
+<script>
+(function () {
+  var STORAGE_KEY = "openlist-theme";
+
+  function unlockScroll() {
+    var docEl = document.documentElement;
+    var body = document.body;
+    if (docEl) {
+      docEl.style.overflow = "";
+      docEl.style.overflowY = "";
+      docEl.style.position = "";
+      docEl.style.width = "";
+    }
+    if (body) {
+      body.style.overflow = "";
+      body.style.overflowY = "";
+      body.style.position = "";
+      body.style.width = "";
+      body.style.paddingRight = "";
+      body.style.touchAction = "";
+    }
+  }
+
+  function hasVisibleLayer(selector) {
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; i++) {
+      var s = window.getComputedStyle(nodes[i]);
+      var rect = nodes[i].getBoundingClientRect();
+      var visible = s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0" && rect.width > 0 && rect.height > 0;
+      if (visible) return true;
+    }
+    return false;
+  }
+
+  function clearStuckOverlays() {
+    var hasVisibleDrawer = hasVisibleLayer(".hope-drawer__content-container");
+    var hasVisibleModal = hasVisibleLayer(".hope-modal__content, .hope-modal__content-container");
+    if (hasVisibleDrawer || hasVisibleModal) return;
+
+    var overlays = document.querySelectorAll(".hope-drawer__overlay, .hope-modal__overlay");
+    for (var i = 0; i < overlays.length; i++) {
+      overlays[i].style.pointerEvents = "none";
+    }
+  }
+
+  function cleanupThemeSwitchUi() {
+    // Only reset scroll lock; do not hide Drawer/Modal nodes globally.
+    // Hiding these nodes can break OpenList side panel interactions.
+    unlockScroll();
+    clearStuckOverlays();
+    setTimeout(unlockScroll, 120);
+    setTimeout(clearStuckOverlays, 120);
+    setTimeout(unlockScroll, 320);
+    setTimeout(clearStuckOverlays, 320);
+  }
+
+  function getThemeTargets() {
+    return document.querySelectorAll(".hope-ui-light, .hope-ui-dark");
+  }
+
+  function detectTheme() {
+    var targets = getThemeTargets();
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].classList.contains("hope-ui-dark")) return "dark";
+    }
+    return "light";
+  }
+
+  function applyTheme(theme) {
+    var dark = theme === "dark";
+    var targets = getThemeTargets();
+
+    for (var i = 0; i < targets.length; i++) {
+      targets[i].classList.remove("hope-ui-light", "hope-ui-dark");
+      targets[i].classList.add(dark ? "hope-ui-dark" : "hope-ui-light");
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY, dark ? "dark" : "light");
+    } catch (_e) {}
+
+    cleanupThemeSwitchUi();
+  }
+
+  function toggleTheme(e) {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+
+    var next = detectTheme() === "light" ? "dark" : "light";
+    applyTheme(next);
+  }
+
+  function ensureSwitchButton() {
+    var btn = document.getElementById("hope-menu-daynight-switch-trigger");
+
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "hope-menu-daynight-switch-trigger";
+      btn.type = "button";
+      btn.setAttribute("aria-label", "switch layout");
+      btn.className = "hope-icon-button";
+      btn.innerHTML =
+        '<svg viewBox="0 0 1024 1024" width="1em" height="1em" aria-hidden="true">' +
+        '<path d="M512 0c282.7776 0 512 229.2224 512 512s-229.2224 512-512 512S0 794.7776 0 512 229.2224 0 512 0z m0 51.2a460.8 460.8 0 0 0-13.568 921.3952L512 972.8v-256a204.8 204.8 0 1 0 0-409.6V51.2z m0 256v409.6a204.8 204.8 0 1 1 0-409.6z" fill="currentColor"></path>' +
+        "</svg>";
+      document.body.appendChild(btn);
+    }
+
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", toggleTheme, true);
+    }
+  }
+
+function restoreTheme() {
+  var saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (_e) {}
+
+  if (saved === "light" || saved === "dark") {
+    applyTheme(saved);
+  } else {
+    applyTheme("dark");
+  }
+}
+
+  function boot() {
+    restoreTheme();
+    ensureSwitchButton();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 多挂载路径：专属公告开始 ===== -->
+
+<style>
+.custom-storage-notice {
+  max-width: 1040px;
+  margin: 16px auto 18px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+/* 日间模式 */
+.hope-ui-light .custom-storage-notice {
+  color: rgba(20, 24, 32, 0.92);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 夜间模式 */
+.hope-ui-dark .custom-storage-notice {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(18, 18, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.custom-storage-notice h3 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.custom-storage-notice p {
+  margin: 0 0 14px;
+}
+
+.custom-storage-notice ul {
+  margin: 8px 0 14px 1.2em;
+  padding: 0;
+}
+
+.custom-storage-notice li {
+  margin: 4px 0;
+}
+
+.hope-ui-light .custom-storage-notice a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.hope-ui-dark .custom-storage-notice a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.custom-storage-notice a:hover {
+  text-decoration: underline;
+}
+
+.custom-storage-notice details {
+  margin-top: 8px;
+}
+
+.custom-storage-notice summary {
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+#custom-storage-notice-wrap {
+  width: 100%;
+}
+</style>
+
+<script>
+(function () {
+  /*
+   * 多挂载公告配置
+   *
+   * path：你的 OpenList 挂载路径
+   * html：这个路径下显示的公告内容
+   *
+   * 例如：
+   * /南+合集 会匹配：
+   * /南+合集
+   * /南+合集/子目录
+   */
+
+  var NOTICE_CONFIGS = [
+    {
+      path: "/南+合集",
+      html: `
+        <div class="custom-storage-notice">
+          <p><strong>本站默认解压密码一般是 south-plus</strong></p>
+
+          <p>
+            这是远程挂载目录，下载速度与上游站点状态有关。
+            如遇下载失败、限流或文件失效，请稍后重试。
+          </p>
+
+         <p>
+            批量下载建议使用页面右下角的齿轮按钮配置 Aria2，
+            然后多选文件发送到 Aria2 下载。
+         </p>
+
+         <p>
+           当前挂载建议使用 302 重定向策略，避免下载流量经过本站服务器。
+         </p>
+
+         <details>
+           <summary>更新日志</summary>
+           <p>这里可以写你自己的说明，不需要上传到对方目录。</p>
+      </details>
+    </div>
+  `
+},
+{
+  path: "/梓澪の妙妙屋",
+  html: `
+    <div class="custom-storage-notice">
+      <h3>👁️ 说明</h3>
+
+      <ul>
+        <li><strong>资源总量：</strong> 51.284 TB</li>
+        <li>
+          <strong>网站线路：</strong>
+          <ul>
+            <li>
+              <strong>ZIO CDN（推荐）：</strong>
+              <a href="https://zi0.cc" target="_blank">zi0.cc</a> |
+              <a href="https://zi1.cc" target="_blank">zi1.cc</a> |
+              <a href="https://zi6.cc" target="_blank">zi6.cc</a> |
+              <a href="https://gal.games" target="_blank">gal.games</a> |
+              <a href="https://get.galgame.ing" target="_blank">get.galgame.ing</a>
+            </li>
+            <li>
+              <strong>Cloudflare CDN：</strong>
+              <a href="https://zi4.cc" target="_blank">zi4.cc</a> |
+              <a href="https://zi8.cc" target="_blank">zi8.cc</a> |
+              <a href="https://gal.ga" target="_blank">gal.ga</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <details open>
+        <summary><strong>❔ 常见问题</strong></summary>
+
+        <p><strong>关于存储</strong></p>
+        <ul>
+          <li>本目录为远程挂载资源区，实际存储与上游站点有关。</li>
+          <li>资源列表、下载速度和可用性均取决于上游状态。</li>
+          <li>如遇文件失效、目录加载失败或短时间无法访问，请稍后重试。</li>
+        </ul>
+
+        <p><strong>关于更新</strong></p>
+        <ul>
+          <li>资源由上游维护，更新频率不固定。</li>
+          <li>新出的 Galgame 可以先去南+或其他资源站搜索。</li>
+          <li>站内已有游戏一般不会频繁更新，有新版本可自行寻找来源。</li>
+        </ul>
+
+        <p><strong>关于搜索</strong></p>
+        <ul>
+          <li>本站支持模糊搜索，用空格隔开关键词。</li>
+          <li>搜索时不要输入太长的游戏名，只输入游戏名中不常见的几个字即可。</li>
+          例:想找 巧克力与香子兰 ,输入 巧 子 即可; 绯月仙行录 -> 绯; 【PC+KR】[ADV][AI翻译]死に逝く騎士、異世界に響く断末魔、死馆2 -> 死 士
+          <li>如果中文名搜不到，可以尝试日文原名、英文名、会社名或简称。</li>
+          例:绯色修仙传 绯月仙行录 绯色修仙录
+          <li>搜索时注意不要打错字，尽量直接复制游戏名。</li>
+        </ul>
+
+        <p><strong>关于解压密码</strong></p>
+        <ul>
+          <li>网站里的资源一般是重新打包过的，部分资源可能没有密码。</li>
+          <li>如果有密码，通常会写在资源所在目录或说明文件里。</li>
+          <li>南+相关资源可优先尝试 <strong>south-plus</strong>。</li>
+        </ul>
+
+        <p><strong>下载速度慢？</strong></p>
+        <ul>
+          <li>网站里的资源并不一定限速，速度受上游、线路和本地网络影响。</li>
+          <li>如果下载太慢，建议使用高速全局代理，或使用多线程下载器。</li>
+          <li>批量下载建议使用 Aria2 / Motrix，并适当降低线程数，避免触发上游限流。</li>
+        </ul>
+      </details>
+
+      <details>
+        <summary><strong>📘 下载教程</strong></summary>
+        <ul>
+          <li>可以使用 Aria2 批量下载，并保持目录结构。</li>
+          <li>在 OpenList 页面右下角齿轮按钮中配置自己的 Aria2 参数。</li>
+          <li>配置完成后，多选文件或目录发送到 Aria2 下载。</li>
+          <li>当前挂载建议使用 <strong>302 重定向</strong> 策略，尽量避免下载流量经过本站服务器。</li>
+        </ul>
+      </details>
+
+      <p style="margin-top:16px;opacity:.78;font-size:14px;">
+        本站仅作远程挂载索引展示，不保证上游资源长期可用。请温柔取用资源，不要高并发扫目录或长时间满速拉取。
+      </p>
+    </div>
+  `
+}
+
+  ];
+
+  function getCurrentPath() {
+    try {
+      return decodeURIComponent(location.pathname);
+    } catch (e) {
+      return location.pathname;
+    }
+  }
+
+  function normalizePath(path) {
+    if (!path) return "/";
+    if (path.length > 1 && path.endsWith("/")) {
+      return path.slice(0, -1);
+    }
+    return path;
+  }
+
+  function getMatchedNotice() {
+    var path = normalizePath(getCurrentPath());
+
+    for (var i = 0; i < NOTICE_CONFIGS.length; i++) {
+      var item = NOTICE_CONFIGS[i];
+      var itemPath = normalizePath(item.path);
+
+      if (path === itemPath || path.startsWith(itemPath + "/")) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  function shouldShowNotice() {
+    return !!getMatchedNotice();
+  }
+
+  function removeNotice() {
+    var old = document.getElementById("custom-storage-notice-wrap");
+    if (old) old.remove();
+  }
+
+  function findFileList() {
+    return (
+      document.querySelector(".obj-box") ||
+      document.querySelector(".table")
+    );
+  }
+
+  function insertNotice() {
+    var matched = getMatchedNotice();
+
+    if (!matched) {
+      removeNotice();
+      return;
+    }
+
+    // 每次重新定位前先移除旧公告，避免路由变化后位置错乱
+    removeNotice();
+
+    var table = findFileList();
+
+    // 文件列表还没渲染出来时，不要乱插，等 MutationObserver 再触发
+    if (!table || !table.parentNode) {
+      return;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.id = "custom-storage-notice-wrap";
+    wrap.innerHTML = matched.html;
+
+    // 永远插到文件列表下面
+    table.parentNode.insertBefore(wrap, table.nextSibling);
+  }
+
+  function refreshNotice() {
+    setTimeout(insertNotice, 80);
+    setTimeout(insertNotice, 300);
+    setTimeout(insertNotice, 800);
+  }
+
+  function hookRouteChange() {
+    if (window.__customStorageNoticeHooked) return;
+    window.__customStorageNoticeHooked = true;
+
+    var rawPushState = history.pushState;
+    var rawReplaceState = history.replaceState;
+
+    history.pushState = function () {
+      var ret = rawPushState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    history.replaceState = function () {
+      var ret = rawReplaceState.apply(this, arguments);
+      refreshNotice();
+      return ret;
+    };
+
+    window.addEventListener("popstate", refreshNotice);
+  }
+
+  function boot() {
+    hookRouteChange();
+    refreshNotice();
+
+    var observer = new MutationObserver(function () {
+      var matched = getMatchedNotice();
+
+      if (matched) {
+        var existed = document.getElementById("custom-storage-notice-wrap");
+        var table = findFileList();
+
+        // 只有公告不存在，或者公告没有紧跟文件列表时，才重新插入
+        if (!existed || (table && table.nextSibling !== existed)) {
+          insertNotice();
+        }
+      } else {
+        removeNotice();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<!-- ===== 多挂载路径：专属公告结束 ===== -->
